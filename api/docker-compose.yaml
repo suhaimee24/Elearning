@@ -1,0 +1,31 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15.4
+    container_name: db
+    volumes:
+      - datastore:/var/lib/postgresql/data
+    ports:
+      - ${DB_PORT}:${DB_PORT}
+    environment:
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    command: -p ${DB_PORT}
+    restart: always
+  api:
+    container_name: api
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        ENV: ${RAILS_ENV}
+    env_file: ./environments/${RAILS_ENV}.env
+    command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails s -p ${RAILS_PORT} -b '0.0.0.0'"
+    ports:
+      - 4000:4000
+    volumes:
+      - .:/api
+volumes:
+  datastore:
